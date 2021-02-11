@@ -15,7 +15,6 @@ app = Flask(__name__)
 def parse_message(message):
     chat_id = message['message']['chat']['id']
     txt = message['message']['text']
-    # mesajid = message['message']['from']['id']
     firstname = message['message']['from']['first_name']
     date = message['message']['date']
     username = message['message']['from']['username']
@@ -56,7 +55,6 @@ def onerisikayet(chat_id, txt, username, date, komut):
             log.write(f'ŞİKAYET| {username} {chat_id} {datetime.fromtimestamp(date)} : {txt}\n')
     requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id, 'text': ("Değerlendirmeniz alındı, teşekkürler.")}).json()
 
-
 def akademiktakvim(chat_id):
     import requests
     from bs4 import BeautifulSoup as soup
@@ -94,20 +92,6 @@ def otobussaatleri(chat_id,hatno):
     duraklar = page_soup.findAll("div", {"class": "entry_content"})
     # saatler = page_soup.findAll("a", {"class": "btn"})
 
-    # s = "0"
-    # durak_index = 0
-    # for i in duraklar:
-    #     requests.post(url="https://api.telegram.org/bot{0}/sendMessage".format(token), data={"chat_id": chat_id, "text": f'*{i.text}*', "parse_mode": "markdown"}).json()
-    #     durak_index = durak_index + 1
-    #     for saat in saatler:
-    #         s_prev = s
-    #         s = saat.text.split(':')[0]
-    #         if int(s) < int(s_prev):
-    #             durak_index -= 1
-    #             if durak_index == -1:
-    #                 break
-    #         if durak_index == 0:
-    #             requests.post(url="https://api.telegram.org/bot{0}/sendMessage".format(token), data={"chat_id": chat_id, "text": f'{saat.text}', "parse_mode": "markdown"}).json()
     requests.post(url="https://api.telegram.org/bot{0}/sendMessage".format(token),
                   data={"chat_id": chat_id, "text": f'{duraklar[0].text}', "parse_mode": "markdown"}).json()
 
@@ -145,57 +129,6 @@ def kulliyehaber(chat_id):
     # print(allpage[0].li.text)  # haber tarihi
     # print(allpage[0].h2.text)  # Haber başlığı
     # print(allpage[0].a['href'])  # haber linki
-
-    # InputMediaPhoto = [
-    #     {
-    #         "parse_mode": "markdown",
-    #         "type": "photo",
-    #         "media": allpage[0].img["src"],
-    #         "caption": f"_{allpage[0].li.text}_\n*{allpage[0].h2.text}* \n" + allpage[0].a["href"]
-    #     },
-    #     {
-    #         "parse_mode": "markdown",
-    #         "type": "photo",
-    #         "media": allpage[1].img['src'],
-    #         "caption": f"_{allpage[1].li.text}_\n*{allpage[1].h2.text}* \n" + allpage[1].a["href"]
-    #     },
-    #     {
-    #         "parse_mode": "markdown",
-    #         "type": "photo",
-    #         "media": allpage[2].img['src'],
-    #         "caption": f"_{allpage[2].li.text}_\n*{allpage[2].h2.text}* \n" + allpage[2].a["href"]
-    #     },
-    #     {
-    #         "parse_mode": "markdown",
-    #         "type": "photo",
-    #         "media": allpage[3].img['src'],
-    #         "caption": f"_{allpage[3].li.text}_\n*{allpage[3].h2.text}* \n" + allpage[3].a["href"]
-    #     },
-    #     {
-    #         "parse_mode": "markdown",
-    #         "type": "photo",
-    #         "media": allpage[4].img['src'],
-    #         "caption": f"_{allpage[4].li.text}_\n*{allpage[4].h2.text}* \n" + allpage[4].a["href"]
-    #     },
-    #     {
-    #         "parse_mode": "markdown",
-    #         "type": "photo",
-    #         "media": allpage[5].img['src'],
-    #         "caption": f"_{allpage[5].li.text}_\n*{allpage[2].h2.text}* \n" + allpage[5].a["href"]
-    #     },
-    #     {
-    #         "parse_mode": "markdown",
-    #         "type": "photo",
-    #         "media": allpage[6].img['src'],
-    #         "caption": f"_{allpage[6].li.text}_\n*{allpage[6].h2.text}* \n" + allpage[6].a["href"]
-    #     },
-    #     {
-    #         "parse_mode": "markdown",
-    #         "type": "photo",
-    #         "media": allpage[7].img['src'],
-    #         "caption": f"_{allpage[7].li.text}_\n*{allpage[7].h2.text}* \n" + allpage[7].a["href"]
-    #     },
-    # ]
 
     InputMediaPhoto = []
     for i in range(7):
@@ -282,7 +215,7 @@ def index():
 
         otobusmu = txt.split(' ')[0]
         hatno = txt.split(' ')[-1]
-        print(txt)
+        # print(txt)
         # print(hatno)
         # print("/otobussaatleri " + hatno)
         # print(otobusmu)
@@ -316,7 +249,8 @@ def index():
                                                                                                           "/nobetcieczane - Karabük Nöbetçi Eczaneleri\n"
                                                                                                           "/havadurumu - Karabük Hava Durumu\n"
                                                                                                           "/otobussaatleri - Karabük Otobüs Saatleri\n\n"
-                                                                                                          "Komutları ile açıklamalardaki bilgilere erişebilirsiniz.\n")}).json()
+                                                                                                          "Komutları ile açıklamalardaki bilgilere erişebilirsiniz.\n\n"
+                                                                                                          "Botu değerlendirmek için /oneri veya /sikayet komutlarını kullanabilirsiniz. Örneğin '/oneri Bu bir öneridir.' ya da '/sikayet bu bir şikayettir.'")}).json()
         elif txt == '/otobussaatleri' or txt == '/otobüssaatleri' or txt == '/otobüs' or txt == '/otobus' or txt == 'otobüs saatleri':
             requests.post(url='https://api.telegram.org/bot{0}/sendPhoto'.format(token), data={'chat_id': chat_id, 'photo':'https://i.hizliresim.com/ArXlp2.jpg', 'caption':'Kullanacağınız otobüs hattını listeden görüntüleyerek sonraki komutunuzu /otobussaatleri hat_no şeklinde yapabilirsiniz. Örneğin:/otobussaatleri 15' }).json()
         else:
