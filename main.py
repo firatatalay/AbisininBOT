@@ -236,7 +236,7 @@ def index():
                kontrol=1
                break
         if kontrol == 0:
-            dosya.write(f'{username}')
+            dosya.write(f'{username} ')
         dosya.close()
 
 
