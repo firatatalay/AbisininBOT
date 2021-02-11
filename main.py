@@ -43,6 +43,37 @@ def parse_message(message):
 # Return i.text...
 # '\n'.join(map(fonksiyon, dizi))
 
+# def otobussaatleri(chat_id):
+#     print(chat_id)
+
+def otobussaatleri(chat_id,hatno):
+    url = ("https://www.karabuk.bel.tr/otobus-saatleri2.asp?hid="+hatno)
+    uClient = uReq(url)
+    page_html = uClient.read()
+    uClient.close()
+    page_soup = soup(page_html, 'html.parser')
+
+    duraklar = page_soup.findAll("div", {"class": "entry_content"})
+    # saatler = page_soup.findAll("a", {"class": "btn"})
+
+    # s = "0"
+    # durak_index = 0
+    # for i in duraklar:
+    #     requests.post(url="https://api.telegram.org/bot{0}/sendMessage".format(token), data={"chat_id": chat_id, "text": f'*{i.text}*', "parse_mode": "markdown"}).json()
+    #     durak_index = durak_index + 1
+    #     for saat in saatler:
+    #         s_prev = s
+    #         s = saat.text.split(':')[0]
+    #         if int(s) < int(s_prev):
+    #             durak_index -= 1
+    #             if durak_index == -1:
+    #                 break
+    #         if durak_index == 0:
+    #             requests.post(url="https://api.telegram.org/bot{0}/sendMessage".format(token), data={"chat_id": chat_id, "text": f'{saat.text}', "parse_mode": "markdown"}).json()
+    requests.post(url="https://api.telegram.org/bot{0}/sendMessage".format(token),
+                  data={"chat_id": chat_id, "text": f'{duraklar[0].text}', "parse_mode": "markdown"}).json()
+
+
 def havaDurumu(chat_id):
     url = "https://www.havadurumu15gunluk.net/havadurumu/karabuk-hava-durumu-15-gunluk.html"
     uClient = uReq(url)
@@ -58,11 +89,11 @@ def havaDurumu(chat_id):
     # print(aciklama[4].text)  # 4'ten itibaren sırasıyla devam ediyor
     derece = page_soup.findAll("td", {"width": "45"})
     # print(derece[0].text, "/" + derece[1].text)
-    requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id,
+    requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id, 'parse_mode':'markdown',
                                                                                          'text': ("Karabük \n" +
-                                                                                                  tarih[0].text +", "+ gun[0].text +"\n"+ aciklama[4].text +""   + (derece[0].text + " /" + derece[1].text) + "\n\n" +
-                                                                                                  tarih[1].text +", "+ gun[2].text +"\n"+ aciklama[5].text +""   + (derece[2].text + " /" + derece[3].text) + "\n\n" +
-                                                                                                  tarih[2].text +", "+ gun[4].text +"\n"+ aciklama[6].text +""   + (derece[4].text + " /" + derece[5].text)
+                                                                                                  tarih[0].text +", "+ f'*{gun[0].text}*' +"\n"+ aciklama[4].text +""   + (derece[0].text + " /" + derece[1].text) + "\n\n" +
+                                                                                                  tarih[1].text +", "+ f'*{gun[2].text}*' +"\n"+ aciklama[5].text +""   + (derece[2].text + " /" + derece[3].text) + "\n\n" +
+                                                                                                  tarih[2].text +", "+ f'*{gun[4].text}*' +"\n"+ aciklama[6].text +""   + (derece[4].text + " /" + derece[5].text)
                                                                                                   )}).json()
 
 def kulliyehaber(chat_id):
@@ -144,7 +175,6 @@ def kulliyehaber(chat_id):
     # print(allpage[6].img['src'].split('.')[-1])
     requests.post(url="https://api.telegram.org/bot{0}/sendMediaGroup".format(token), data={"chat_id": chat_id, "media":json.dumps(InputMediaPhoto), "parse_mode": "markdown"}).json()
 
-
 def kbuDuyuru(chat_id):
     url = "https://muh.karabuk.edu.tr/index.php?page=announcements"
     uClient = uReq(url)
@@ -179,7 +209,6 @@ def nobetciEczane(chat_id):
                                                                                          'parse_mode':'markdown',
                                                                                          'text': (f'*{allpage[1].a.text}*' + ", ") + f'*{(alert[1].text)}*'}).json()
 
-    # for i in range(6, 12):
     requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id,
                                                                                          'parse_mode':'markdown',
                                                                                          'text': ((f'*{containers[6].h4.text}*') + (containers[6].text.split("\n\n\r\n\r\n")[1].strip()) + "\n\n" +
@@ -214,23 +243,30 @@ def index():
         with open('log.txt', 'a+') as log:
             log.write(f'{username} {chat_id} {datetime.fromtimestamp(date)} {txt}\n')
 
+        otobusmu = txt.split(' ')[0]
+        hatno = txt.split(' ')[-1]
+        # print(hatno)
+        # print("/otobussaatleri " + hatno)
+        # print(otobusmu)
 
-
-        if txt == '/nobetci' or txt == '/eczane' or txt =='/Eczane' or txt == '/nöbetçi' or txt=='/nobetcieczane':
+        if txt == '/start':
+            requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id, 'text': ("Hoşgeldin Abisinin,\n /yardim komutunu kullanarak bot hakkında bilgi edinebilirsin.")}).json()
+        elif otobusmu == '/otobussaatleri' and hatno.isdigit() == True:
+            otobussaatleri(chat_id, hatno)
+        elif txt == '/nobetci' or txt == '/eczane' or txt =='/Eczane' or txt == '/nöbetçi' or txt=='/nobetcieczane':
             nobetciEczane(chat_id)
         elif txt == '/duyuru' or txt =='/Duyuru' or txt =='/DUYURU' or txt == '/duyurular' or txt =='duyurular' or txt =='kbü duyuru':
             kbuDuyuru(chat_id)
-        elif txt == '/kbuhaber' or txt =='/kulliyehaber' or txt =='/külliye' or txt == '/kbühaber' or txt =='haberkbü' or txt =='haberler':
+        elif txt == '/kbuhaber' or txt =='/kulliyehaber' or txt =='/külliye' or txt == '/kbühaber' or txt =='haberkbü' or txt =='/haberler':
             kulliyehaber(chat_id)
         elif txt == '/havaDurumu' or txt =='/hava' or txt =='/havadurumu' or txt =='/HAVADURUMU' or txt =='/durum':
             havaDurumu(chat_id)
-        elif txt == '/start':
-            requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id, 'text': ("Hoşgeldin Abisinin,\n /yardim komutunu kullanarak bot hakkında bilgi edinebilirsin.")}).json()
         elif txt == '/yardim' or txt == '/yardım' or txt == '/bilgi' or txt == '/help':
             requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id, 'text': (" /yardim - Bot Nasıl Çalışır? Ne İşe Yarar?\n /duyuru - Karabük Üniversitesi Duyuruları\n /nobetcieczane - Karabük Nöbetçi Eczaneleri\n /havadurumu - Karabük Hava Durumu\n\n Komutları ile açıklamalardaki bilgilere erişebilirsiniz.\n")}).json()
+        elif txt == '/otobussaatleri' or txt == '/otobüssaatleri' or txt == '/otobüs' or txt == '/otobus' or txt == 'otobüs saatleri':
+            requests.post(url='https://api.telegram.org/bot{0}/sendPhoto'.format(token), data={'chat_id': chat_id, 'photo':'https://i.hizliresim.com/ArXlp2.jpg', 'caption':'Kullanacağınız otobüs hattını listeden görüntüleyerek sonraki komutunuzu /otobussaatleri hat_no şeklinde yapabilirsiniz. Örneğin:/otobussaatleri 15' }).json()
         else:
             requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id, 'text': ("Anlamadım, lütfen /yardim komutu ile bot hakkında bilgi alın."), 'parse_mode':'markdown' }).json()
-            # write_json(msg, 'telegram_request.json')
         return Response('Ok', status=200)
     else:
         return '<h1> Abisinin_BOT WebHook Sayfasına Hoşgeldin. </h1>'
