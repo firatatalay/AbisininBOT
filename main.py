@@ -46,6 +46,44 @@ def parse_message(message):
 # def otobussaatleri(chat_id):
 #     print(chat_id)
 
+def onerisikayet(chat_id, txt, username, date, komut):
+
+    if komut == "/oneri":
+        with open('Oneri-Sikayet.txt', 'a+') as log:
+            log.write(f'ÖNERİ| {username} {chat_id} {datetime.fromtimestamp(date)} : {txt}\n')
+    elif komut == "/sikayet":
+        with open('Oneri-Sikayet.txt', 'a+') as log:
+            log.write(f'ŞİKAYET| {username} {chat_id} {datetime.fromtimestamp(date)} : {txt}\n')
+    requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id, 'text': ("Değerlendirmeniz alındı, teşekkürler.")}).json()
+
+
+def akademiktakvim(chat_id):
+    import requests
+    from bs4 import BeautifulSoup as soup
+    from urllib.request import urlopen as uReq
+
+    url = "https://oidb.karabuk.edu.tr/icerikGoster.aspx?K=S&id=40&BA=index.aspx"
+    uClient = uReq(url)
+    page_html = uClient.read()
+    uClient.close()
+    page_soup = soup(page_html, 'html.parser')
+
+    p = page_soup.findAll("p", {
+        "style": "color: rgb(0, 0, 0); font-family: Tahoma; font-size: medium; background-color: rgb(240, 240, 240);"})
+
+    # print(p[0].text)  # Başlık, 0-5 indisler
+    # print("https://oidb.karabuk.edu.tr/" + p[0].a['href'])  # pdf yolu 0-5 indisler
+
+    requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id,
+                                                                                         'parse_mode': 'markdown',
+                                                                                         'text':(f'*{p[0].text}*\n' "https://oidb.karabuk.edu.tr/" + p[0].a['href']+"\n"
+                                                                                                 f'*{p[1].text}*\n' "https://oidb.karabuk.edu.tr/" + p[1].a['href']+"\n"
+                                                                                                 f'*{p[2].text}*\n' "https://oidb.karabuk.edu.tr/" + p[2].a['href']+"\n"
+                                                                                                 f'*{p[3].text}*\n' "https://oidb.karabuk.edu.tr/" + p[3].a['href']+"\n"
+                                                                                                 f'*{p[4].text}*\n' "https://oidb.karabuk.edu.tr/" + p[4].a['href']+"\n"
+                                                                                                 f'*{p[5].text}*\n' "https://oidb.karabuk.edu.tr/" + p[5].a['href']+"\n"
+                                                                                                 )}).json()
+
 def otobussaatleri(chat_id,hatno):
     url = ("https://www.karabuk.bel.tr/otobus-saatleri2.asp?hid="+hatno)
     uClient = uReq(url)
@@ -72,7 +110,6 @@ def otobussaatleri(chat_id,hatno):
     #             requests.post(url="https://api.telegram.org/bot{0}/sendMessage".format(token), data={"chat_id": chat_id, "text": f'{saat.text}', "parse_mode": "markdown"}).json()
     requests.post(url="https://api.telegram.org/bot{0}/sendMessage".format(token),
                   data={"chat_id": chat_id, "text": f'{duraklar[0].text}', "parse_mode": "markdown"}).json()
-
 
 def havaDurumu(chat_id):
     url = "https://www.havadurumu15gunluk.net/havadurumu/karabuk-hava-durumu-15-gunluk.html"
@@ -185,7 +222,7 @@ def kbuDuyuru(chat_id):
     # for i in allpage:
     requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id,
                                                                                          'parse_mode': 'markdown',
-                                                                                         'text': (f'*{allpage[0].strong.text}* '+"https://muh.karabuk.edu.tr/"+allpage[0].a['href'] +
+                                                                                         'text': (f'*{allpage[0].strong.text}*\n '+"https://muh.karabuk.edu.tr/"+allpage[0].a['href'] +
                                                                                                   f'\n\n*{allpage[1].strong.text}*\n '+ "https://muh.karabuk.edu.tr/"+allpage[1].a['href'] +
                                                                                                   f'\n\n*{allpage[2].strong.text}*\n '+ "https://muh.karabuk.edu.tr/"+allpage[2].a['href'] +
                                                                                                   f'\n\n*{allpage[3].strong.text}*\n '+ "https://muh.karabuk.edu.tr/"+allpage[3].a['href'] +
@@ -245,12 +282,20 @@ def index():
 
         otobusmu = txt.split(' ')[0]
         hatno = txt.split(' ')[-1]
+        print(txt)
         # print(hatno)
         # print("/otobussaatleri " + hatno)
         # print(otobusmu)
 
+        komut = otobusmu
+
         if txt == '/start':
             requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id, 'text': ("Hoşgeldin Abisinin,\n /yardim komutunu kullanarak bot hakkında bilgi edinebilirsin.")}).json()
+        elif komut == '/sikayet' or komut == '/oneri':
+            print(komut, txt)
+            onerisikayet(chat_id, txt, username, date, komut)
+        elif otobusmu == '/akademiktakvim':
+            akademiktakvim(chat_id)
         elif otobusmu == '/otobussaatleri' and hatno.isdigit() == True:
             otobussaatleri(chat_id, hatno)
         elif txt == '/nobetci' or txt == '/eczane' or txt =='/Eczane' or txt == '/nöbetçi' or txt=='/nobetcieczane':
@@ -262,7 +307,16 @@ def index():
         elif txt == '/havaDurumu' or txt =='/hava' or txt =='/havadurumu' or txt =='/HAVADURUMU' or txt =='/durum':
             havaDurumu(chat_id)
         elif txt == '/yardim' or txt == '/yardım' or txt == '/bilgi' or txt == '/help':
-            requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id, 'text': (" /yardim - Bot Nasıl Çalışır? Ne İşe Yarar?\n /duyuru - Karabük Üniversitesi Duyuruları\n /nobetcieczane - Karabük Nöbetçi Eczaneleri\n /havadurumu - Karabük Hava Durumu\n\n Komutları ile açıklamalardaki bilgilere erişebilirsiniz.\n")}).json()
+            requests.post(url='https://api.telegram.org/bot{0}/sendMessage'.format(token), data={'chat_id': chat_id,
+                                                                                                 'text': ("/yardim - Bot Nasıl Çalışır? Ne İşe Yarar?\n"
+                                                                                                          "/duyuru - Karabük Üniversitesi Duyuruları\n"
+                                                                                                          "/haberler - Karabük Üniversitesi Külliye Haberleri\n"
+                                                                                                          "/duyuru - Karabük Üniversitesi Duyuruları\n"
+                                                                                                          "/akademiktakvim - Karabük Üniversitesi Akademik Takvim\n"
+                                                                                                          "/nobetcieczane - Karabük Nöbetçi Eczaneleri\n"
+                                                                                                          "/havadurumu - Karabük Hava Durumu\n"
+                                                                                                          "/otobussaatleri - Karabük Otobüs Saatleri\n\n"
+                                                                                                          "Komutları ile açıklamalardaki bilgilere erişebilirsiniz.\n")}).json()
         elif txt == '/otobussaatleri' or txt == '/otobüssaatleri' or txt == '/otobüs' or txt == '/otobus' or txt == 'otobüs saatleri':
             requests.post(url='https://api.telegram.org/bot{0}/sendPhoto'.format(token), data={'chat_id': chat_id, 'photo':'https://i.hizliresim.com/ArXlp2.jpg', 'caption':'Kullanacağınız otobüs hattını listeden görüntüleyerek sonraki komutunuzu /otobussaatleri hat_no şeklinde yapabilirsiniz. Örneğin:/otobussaatleri 15' }).json()
         else:
