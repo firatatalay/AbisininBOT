@@ -14,7 +14,7 @@ print(allpage[0].li.text) #haber tarihi
 print(allpage[0].h2.text) # Haber başlığı
 print(allpage[0].a['href']) # haber linki
 
-token = "1423255491:AAEujUpmOGcoAGAO-ltM-As4qB2qhk83CBY"  # telegram token
+token = ""  # telegram token
 chat_id = "1423255491"  # telegram id
 
 # print(allpage[0].text + "https://muh.karabuk.edu.tr/"+allpage[0].a['href'] + "\n" +  allpage[1].text + "https://muh.karabuk.edu.tr/"+allpage[1].a['href'])
